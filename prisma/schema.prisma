@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── AUTH ──────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  nickname     String
+  email        String   @unique
+  whatsapp     String?
+  passwordHash String   @map("password_hash")
+  isSuperadmin Boolean  @default(false) @map("is_superadmin")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tenantMembers  TenantMember[]
+  participations Participation[]
+
+  @@map("users")
+}
+
+// ─── TENANT ────────────────────────────────────────────────────────────
+
+model Tenant {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  name          String
+  logoUrl       String?  @map("logo_url")
+  whatsapp      String?
+  pixKey        String?  @map("pix_key")
+  primaryColor  String   @default("#16a34a") @map("primary_color")
+  commissionPct Decimal  @default(5.00) @map("commission_pct") @db.Decimal(5, 2)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  members TenantMember[]
+  boloes  Bolao[]
+
+  @@map("tenants")
+}
+
+model TenantMember {
+  id       String           @id @default(cuid())
+  tenantId String           @map("tenant_id")
+  userId   String           @map("user_id")
+  role     TenantMemberRole @default(MEMBER)
+  joinedAt DateTime         @default(now()) @map("joined_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@map("tenant_members")
+}
+
+enum TenantMemberRole {
+  ADMIN
+  MEMBER
+}
+
+// ─── CATÁLOGO GLOBAL (gerenciado pelo super-admin) ──────────────────────
+
+model Competition {
+  id         String            @id @default(cuid())
+  name       String
+  shortName  String            @map("short_name")
+  country    String
+  logoUrl    String?           @map("logo_url")
+  formatType CompetitionFormat @map("format_type")
+  active     Boolean           @default(true)
+  createdAt  DateTime          @default(now()) @map("created_at")
+
+  seasons Season[]
+
+  @@map("competitions")
+}
+
+enum CompetitionFormat {
+  LIGA
+  GRUPOS_MATA
+  COPA_MATA
+  LIGA_MATA
+}
+
+model Season {
+  id            String       @id @default(cuid())
+  competitionId String       @map("competition_id")
+  year          Int
+  status        SeasonStatus @default(DRAFT)
+  formatConfig  Json         @map("format_config")
+  startDate     DateTime?    @map("start_date")
+  endDate       DateTime?    @map("end_date")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  competition Competition @relation(fields: [competitionId], references: [id])
+  matches     Match[]
+  boloes      Bolao[]
+
+  @@unique([competitionId, year])
+  @@map("seasons")
+}
+
+enum SeasonStatus {
+  DRAFT
+  ACTIVE
+  FINISHED
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  shortName String   @map("short_name")
+  logoUrl   String?  @map("logo_url")
+  country   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
+
+  @@map("teams")
+}
+
+model Match {
+  id          String      @id @default(cuid())
+  seasonId    String      @map("season_id")
+  homeTeamId  String      @map("home_team_id")
+  awayTeamId  String      @map("away_team_id")
+  stage       String
+  round       Int?
+  kickoffAt   DateTime    @map("kickoff_at")
+  homeScore   Int?        @map("home_score")
+  awayScore   Int?        @map("away_score")
+  homePenalty Int?        @map("home_penalty")
+  awayPenalty Int?        @map("away_penalty")
+  status      MatchStatus @default(SCHEDULED)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  season   Season    @relation(fields: [seasonId], references: [id])
+  homeTeam Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  palpites Palpite[]
+
+  @@map("matches")
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  CANCELLED
+}
+
+// ─── BOLÃO (por tenant) ────────────────────────────────────────────────
+
+model Bolao {
+  id            String   @id @default(cuid())
+  tenantId      String   @map("tenant_id")
+  seasonId      String   @map("season_id")
+  name          String
+  entryFee      Decimal  @default(0) @map("entry_fee") @db.Decimal(10, 2)
+  prizePct      Decimal  @default(70) @map("prize_pct") @db.Decimal(5, 2)
+  scoringConfig Json     @default("{\"exact\":5,\"result\":3,\"wrong\":0}") @map("scoring_config")
+  inviteSlug    String   @unique @map("invite_slug")
+  palpitesOpen  Boolean  @default(false) @map("palpites_open")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  season         Season          @relation(fields: [seasonId], references: [id])
+  participations Participation[]
+
+  @@map("boloes")
+}
+
+// ─── PARTICIPAÇÃO & PALPITES ───────────────────────────────────────────
+
+model Participation {
+  id           String    @id @default(cuid())
+  bolaoId      String    @map("bolao_id")
+  userId       String    @map("user_id")
+  paid         Boolean   @default(false)
+  paidAt       DateTime? @map("paid_at")
+  totalPoints  Int       @default(0) @map("total_points")
+  rankPosition Int?      @map("rank_position")
+  rankPrev     Int?      @map("rank_prev")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  bolao    Bolao     @relation(fields: [bolaoId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  palpites Palpite[]
+
+  @@unique([bolaoId, userId])
+  @@map("participations")
+}
+
+model Palpite {
+  id              String   @id @default(cuid())
+  participationId String   @map("participation_id")
+  matchId         String   @map("match_id")
+  homeScore       Int      @map("home_score")
+  awayScore       Int      @map("away_score")
+  tieWinner       String?  @map("tie_winner")
+  points          Int?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  participation Participation @relation(fields: [participationId], references: [id], onDelete: Cascade)
+  match         Match         @relation(fields: [matchId], references: [id])
+
+  @@unique([participationId, matchId])
+  @@map("palpites")
+}
