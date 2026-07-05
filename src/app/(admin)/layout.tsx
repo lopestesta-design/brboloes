@@ -9,6 +9,7 @@ const navItems = [
   { href: "/admin/seasons", label: "Temporadas", icon: "📅" },
   { href: "/admin/teams", label: "Times", icon: "⚽" },
   { href: "/admin/matches", label: "Jogos", icon: "🎮" },
+  { href: "/admin/boloes", label: "Bolões", icon: "🎰" },
 ]
 
 export default async function AdminLayout({
