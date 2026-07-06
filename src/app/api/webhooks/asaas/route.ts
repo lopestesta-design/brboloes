@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { notifyPaymentConfirmed } from "@/lib/whatsapp"
 
 // Verificação de saúde — Asaas faz GET ao ativar o webhook
 export async function GET() {
@@ -29,19 +30,18 @@ export async function POST(req: NextRequest) {
   const { event, payment } = body
 
   if (!PAID_EVENTS.has(event) || !payment) {
-    // Evento não relevante — responde 200 para o Asaas parar de reenviar
     return NextResponse.json({ ok: true })
   }
 
-  // Busca participation pelo externalReference (id da participation)
-  // ou pelo asaasChargeId como fallback
   const participationId = payment.externalReference
   const chargeId = payment.id
 
   const participation = await db.participation.findFirst({
-    where: participationId
-      ? { id: participationId }
-      : { asaasChargeId: chargeId },
+    where: participationId ? { id: participationId } : { asaasChargeId: chargeId },
+    include: {
+      user: { select: { name: true, whatsapp: true } },
+      bolao: { select: { id: true, name: true } },
+    },
   })
 
   if (!participation) {
@@ -50,13 +50,22 @@ export async function POST(req: NextRequest) {
   }
 
   if (participation.paid) {
-    // Já estava pago — idempotente
     return NextResponse.json({ ok: true })
   }
 
   await db.participation.update({
     where: { id: participation.id },
     data: { paid: true, paidAt: new Date() },
+  })
+
+  // Notificação WhatsApp
+  const platformUrl = process.env.NEXTAUTH_URL ?? "https://bolao.appbarcontrol.com.br"
+  await notifyPaymentConfirmed({
+    phone: participation.user.whatsapp,
+    name: participation.user.name,
+    bolaoName: participation.bolao.name,
+    platformUrl,
+    bolaoId: participation.bolao.id,
   })
 
   console.log(`Pagamento confirmado via Asaas: participation ${participation.id}`)
