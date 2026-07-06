@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 
+// Verificação de saúde — Asaas faz GET ao ativar o webhook
+export async function GET() {
+  return NextResponse.json({ ok: true })
+}
+
 // Eventos que indicam pagamento confirmado
 const PAID_EVENTS = new Set(["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"])
 
