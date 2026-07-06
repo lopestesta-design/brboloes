@@ -28,7 +28,10 @@ export default async function DashboardPage() {
           <span className="text-sm text-zinc-400 hidden sm:block">Olá, {session.user.name}</span>
           <Link href="/perfil" className="text-xs text-zinc-400 hover:text-white transition-colors">Perfil</Link>
           {session.user.isSuperadmin && (
-            <Link href="/painel" className="text-xs bg-green-700 hover:bg-green-600 text-white font-bold px-3 py-1 rounded-full transition-colors">Painel</Link>
+            <>
+              <Link href="/painel" className="text-xs bg-green-700 hover:bg-green-600 text-white font-bold px-3 py-1 rounded-full transition-colors">Organizador</Link>
+              <Link href="/admin" className="text-xs bg-zinc-700 hover:bg-zinc-600 text-white font-bold px-3 py-1 rounded-full transition-colors">Admin</Link>
+            </>
           )}
           <Link href="/api/auth/signout" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Sair</Link>
         </div>
