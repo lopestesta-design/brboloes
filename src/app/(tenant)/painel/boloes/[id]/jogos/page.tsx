@@ -54,7 +54,7 @@ export default async function TenantJogosPage({ params }: { params: Promise<{ id
           </h2>
           <div className="space-y-3">
             {upcoming.map((match) => (
-              <MatchResultRow key={match.id} match={match} bolaoId={bolaoId} scoringConfig={bolao.scoringConfig as { exact: number; result: number; wrong: number }} />
+              <MatchResultRow key={match.id} match={match} bolaoId={bolaoId} />
             ))}
           </div>
         </section>

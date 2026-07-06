@@ -94,7 +94,7 @@ export function PalpitesForm({
                   disabled={locked}
                   value={s.home}
                   onChange={(e) => setScore(m.id, "home", e.target.value)}
-                  className="w-14 h-14 text-2xl font-black text-center bg-zinc-800 border border-zinc-700 rounded-xl text-white disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-14 h-14 text-2xl font-black text-center bg-zinc-800 border border-zinc-700 rounded-xl text-white disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-green-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <span className="text-zinc-600 font-black">×</span>
                 <input
@@ -102,7 +102,7 @@ export function PalpitesForm({
                   disabled={locked}
                   value={s.away}
                   onChange={(e) => setScore(m.id, "away", e.target.value)}
-                  className="w-14 h-14 text-2xl font-black text-center bg-zinc-800 border border-zinc-700 rounded-xl text-white disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-14 h-14 text-2xl font-black text-center bg-zinc-800 border border-zinc-700 rounded-xl text-white disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-green-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
 

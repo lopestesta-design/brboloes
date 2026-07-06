@@ -15,10 +15,9 @@ type Match = {
   round: number | null
 }
 
-export function MatchResultRow({ match, bolaoId, scoringConfig }: {
+export function MatchResultRow({ match, bolaoId }: {
   match: Match
   bolaoId: string
-  scoringConfig: { exact: number; result: number; wrong: number }
 }) {
   const router = useRouter()
   const [home, setHome] = useState(match.homeScore?.toString() ?? "")
@@ -77,7 +76,7 @@ export function MatchResultRow({ match, bolaoId, scoringConfig }: {
             max="99"
             value={home}
             onChange={(e) => setHome(e.target.value)}
-            className="w-12 text-center text-lg font-black bg-zinc-800 border border-zinc-700 rounded-lg py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-12 text-center text-lg font-black bg-zinc-800 border border-zinc-700 rounded-lg py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
           <span className="text-zinc-600 font-bold">×</span>
           <input
@@ -86,7 +85,7 @@ export function MatchResultRow({ match, bolaoId, scoringConfig }: {
             max="99"
             value={away}
             onChange={(e) => setAway(e.target.value)}
-            className="w-12 text-center text-lg font-black bg-zinc-800 border border-zinc-700 rounded-lg py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-12 text-center text-lg font-black bg-zinc-800 border border-zinc-700 rounded-lg py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
         </div>
 
