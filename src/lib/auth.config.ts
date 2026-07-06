@@ -2,6 +2,7 @@ import type { NextAuthConfig } from "next-auth"
 
 // Config leve para o middleware — sem banco, sem adapter
 export const authConfig: NextAuthConfig = {
+  trustHost: true,
   pages: {
     signIn: "/login",
   },
